@@ -1,16 +1,82 @@
-# React + Vite
+# GeoGame
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+GeoGame is a web-based navigation game built with React, Leaflet, OpenStreetMap and OSRM.
 
-Currently, two official plugins are available:
+The game retrieves the player's real-time location, generates a random reachable goal within 1–10 km, calculates a valid route to the goal, and detects when the player reaches it.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Features
 
-## React Compiler
+- Real-time player location using the Browser Geolocation API
+- Interactive map using Leaflet and OpenStreetMap
+- Random goal generation within 1–10 km
+- Goal snapping to the routable road network using OSRM
+- Shortest route visualization
+- Goal detection within 50 meters
+- Docker Compose support
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Dynamic route recalculation is not implemented because it is defined as bonus functionality.
 
-## Expanding the ESLint configuration
+## Architecture
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```text
+Browser Geolocation
+        |
+        v
+     React
+        |
+        +---- Geographic calculations
+        |
+        +---- OSRM routing
+        |
+        v
+React Leaflet + OpenStreetMap
+```
+
+The frontend is separated into:
+
+- `components/` - map rendering
+- `hooks/` - geolocation and game lifecycle
+- `services/` - OSRM integration
+- `utils/` - geographic calculations
+
+## Requirements
+
+- Docker
+- Docker Compose
+- Internet connection
+- Browser with Geolocation support
+
+## Run with Docker
+
+From the project root:
+
+```bash
+docker compose up --build
+```
+
+Open:
+
+`http://localhost:8080`
+
+Allow location access when requested by the browser.
+
+## Run without Docker
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Open the URL displayed by Vite.
+
+## External Services
+
+The current implementation uses:
+
+- OpenStreetMap map tiles
+- Public OSRM routing service
+
+These services require an internet connection.
+
+For a fully offline/local deployment, OSRM and map tiles can be self-hosted locally.
