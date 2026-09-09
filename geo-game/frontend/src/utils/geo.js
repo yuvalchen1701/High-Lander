@@ -5,6 +5,21 @@ export const EARTH_RADIUS_KM = 6371
 const toRadians = (degrees) => (degrees * Math.PI) / 180
 const toDegrees = (radians) => (radians * 180) / Math.PI
 
+export function getDistanceKm(startPosition, endPosition) {
+  const [startLatitude, startLongitude] = startPosition.map(toRadians)
+  const [endLatitude, endLongitude] = endPosition.map(toRadians)
+  const latitudeDifference = endLatitude - startLatitude
+  const longitudeDifference = endLongitude - startLongitude
+
+  const haversine =
+    Math.sin(latitudeDifference / 2) ** 2 +
+    Math.cos(startLatitude) *
+      Math.cos(endLatitude) *
+      Math.sin(longitudeDifference / 2) ** 2
+
+  return 2 * EARTH_RADIUS_KM * Math.asin(Math.sqrt(haversine))
+}
+
 export function generateRandomGoal([latitude, longitude]) {
   const distanceKm =
     MIN_GOAL_DISTANCE_KM +

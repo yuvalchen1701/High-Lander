@@ -1,161 +1,22 @@
-import { useEffect, useState } from 'react'
-import L from 'leaflet'
-import {
-  GeoJSON,
-  MapContainer,
-  Marker,
-  Popup,
-  TileLayer,
-  useMap,
-} from 'react-leaflet'
-import ballImage from './assets/ball.jpeg'
-import goalImage from './assets/goal.jpeg'
-import { getRoute } from './services/routing.js'
-import { generateRandomGoal } from './utils/geo.js'
-import 'leaflet/dist/leaflet.css'
+import { GameMap } from './components/GameMap.jsx'
+import { useGame } from './hooks/useGame.js'
+import { useGeolocation } from './hooks/useGeolocation.js'
 import './App.css'
 
-const MAX_GOAL_GENERATION_ATTEMPTS = 10
-
-const playerIcon = L.divIcon({
-  className: 'custom-marker-icon',
-  html: `<div class="player-marker"><img src="${ballImage}" alt="" /></div>`,
-  iconSize: [52, 52],
-  iconAnchor: [26, 26],
-  popupAnchor: [0, -28],
-})
-
-const goalIcon = L.divIcon({
-  className: 'custom-marker-icon',
-  html: `<div class="goal-marker"><img src="${goalImage}" alt="" /></div>`,
-  iconSize: [68, 68],
-  iconAnchor: [34, 34],
-  popupAnchor: [0, -36],
-})
-
-const routeOutlineStyle = {
-  color: '#ffffff',
-  weight: 10,
-  opacity: 0.95,
-  lineCap: 'round',
-  lineJoin: 'round',
-}
-
-const routeStyle = {
-  color: '#1677ff',
-  weight: 6,
-  opacity: 1,
-  lineCap: 'round',
-  lineJoin: 'round',
-}
-
-function FitRoute({ routeGeometry }) {
-  const map = useMap()
-
-  useEffect(() => {
-    const routeBounds = L.geoJSON(routeGeometry).getBounds()
-    map.fitBounds(routeBounds, { padding: [40, 40] })
-  }, [map, routeGeometry])
-
-  return null
-}
-
 export default function App() {
-  const [playerPosition, setPlayerPosition] = useState(null)
-  const [goalPosition, setGoalPosition] = useState(null)
-  const [routeGeometry, setRouteGeometry] = useState(null)
-  const [isFindingRoute, setIsFindingRoute] = useState(false)
-  const [locationError, setLocationError] = useState(() =>
-    navigator.geolocation
-      ? ''
-      : 'Geolocation is not supported by this browser.',
-  )
-  const [routingError, setRoutingError] = useState('')
-
-  useEffect(() => {
-    if (!navigator.geolocation) {
-      return
-    }
-
-    let isActive = true
-
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        if (isActive) {
-          setPlayerPosition([coords.latitude, coords.longitude])
-        }
-      },
-      (error) => {
-        if (!isActive) {
-          return
-        }
-
-        if (error.code === error.PERMISSION_DENIED) {
-          setLocationError(
-            'Location permission was denied. Please allow location access and reload the page.',
-          )
-          return
-        }
-
-        setLocationError(`Unable to retrieve your location: ${error.message}`)
-      },
-      { enableHighAccuracy: true },
-    )
-
-    return () => {
-      isActive = false
-    }
-  }, [])
-
-  useEffect(() => {
-    if (!playerPosition) {
-      return
-    }
-
-    let isActive = true
-
-    async function findReachableGoal() {
-      setIsFindingRoute(true)
-
-      try {
-        for (
-          let attempt = 1;
-          attempt <= MAX_GOAL_GENERATION_ATTEMPTS;
-          attempt += 1
-        ) {
-          const candidateGoal = generateRandomGoal(playerPosition)
-          const candidateRoute = await getRoute(playerPosition, candidateGoal)
-
-          if (candidateRoute) {
-            if (isActive) {
-              setGoalPosition(candidateGoal)
-              setRouteGeometry(candidateRoute)
-              setIsFindingRoute(false)
-            }
-            return
-          }
-        }
-
-        if (isActive) {
-          setRoutingError(
-            `Could not find a reachable goal after ${MAX_GOAL_GENERATION_ATTEMPTS} attempts.`,
-          )
-          setIsFindingRoute(false)
-        }
-      } catch (error) {
-        if (isActive) {
-          setRoutingError(error.message)
-          setIsFindingRoute(false)
-        }
-      }
-    }
-
-    findReachableGoal()
-
-    return () => {
-      isActive = false
-    }
-  }, [playerPosition])
+  const {
+    position: playerPosition,
+    initialPosition,
+    error: locationError,
+    loading: isLocatingPlayer,
+  } = useGeolocation()
+  const {
+    goalPosition,
+    routeGeometry,
+    isFindingRoute,
+    goalReached,
+    error: routingError,
+  } = useGame(initialPosition, playerPosition)
 
   if (locationError) {
     return (
@@ -166,7 +27,7 @@ export default function App() {
     )
   }
 
-  if (!playerPosition) {
+  if (isLocatingPlayer) {
     return (
       <main className="status-message" aria-live="polite">
         <p>Getting your location…</p>
@@ -185,30 +46,19 @@ export default function App() {
 
   return (
     <main className="game">
-      <MapContainer center={playerPosition} zoom={15} className="map">
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <Marker position={playerPosition} icon={playerIcon} zIndexOffset={1000}>
-          <Popup>You are here</Popup>
-        </Marker>
-        {goalPosition && (
-          <Marker position={goalPosition} icon={goalIcon} zIndexOffset={1100}>
-            <Popup>Goal</Popup>
-          </Marker>
-        )}
-        {routeGeometry && (
-          <>
-            <GeoJSON data={routeGeometry} style={routeOutlineStyle} />
-            <GeoJSON data={routeGeometry} style={routeStyle} />
-            <FitRoute routeGeometry={routeGeometry} />
-          </>
-        )}
-      </MapContainer>
+      <GameMap
+        playerPosition={playerPosition}
+        goalPosition={goalPosition}
+        routeGeometry={routeGeometry}
+      />
       {isFindingRoute && (
         <p className="route-status" aria-live="polite">
           Finding a reachable goal…
+        </p>
+      )}
+      {goalReached && (
+        <p className="goal-reached" role="status">
+          Goal Reached!
         </p>
       )}
     </main>
