@@ -19,7 +19,7 @@ Dynamic route recalculation is not implemented because it is defined as bonus fu
 ## Gameplay
 
 <p align="center">
-  <img src="./screenshots/gameplay.png" alt="GeoGame gameplay" width="850">
+  <img src="./screenshots/gameplay.png" alt="GeoGame gameplay" width="500">
 </p>
 
 ## Architecture
