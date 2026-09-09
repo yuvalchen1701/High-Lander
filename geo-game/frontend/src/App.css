@@ -8,6 +8,43 @@
   position: relative;
 }
 
+.custom-marker-icon {
+  background: transparent;
+  border: 0;
+}
+
+.player-marker,
+.goal-marker {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: white;
+  border: 3px solid white;
+}
+
+.player-marker {
+  border-radius: 50%;
+  box-shadow:
+    0 3px 10px rgb(0 0 0 / 35%),
+    0 0 0 4px rgb(22 119 255 / 35%);
+}
+
+.goal-marker {
+  border-radius: 18px;
+  box-shadow:
+    0 4px 12px rgb(0 0 0 / 40%),
+    0 0 0 5px rgb(34 197 94 / 35%);
+}
+
+.player-marker img,
+.goal-marker img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .route-status {
   position: absolute;
   z-index: 1000;
