@@ -46,20 +46,6 @@ The frontend is separated into:
 - Internet connection
 - Browser with Geolocation support
 
-## Run with Docker
-
-From the project root:
-
-```bash
-docker compose up --build
-```
-
-Open:
-
-`http://localhost:8080`
-
-Allow location access when requested by the browser.
-
 ## Run without Docker
 
 ```bash
@@ -67,7 +53,6 @@ cd frontend
 npm install
 npm run dev
 ```
-
 Open the URL displayed by Vite.
 
 ## External Services
