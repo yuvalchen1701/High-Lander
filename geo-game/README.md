@@ -16,6 +16,12 @@ The game retrieves the player's real-time location, generates a random reachable
 
 Dynamic route recalculation is not implemented because it is defined as bonus functionality.
 
+## Gameplay
+
+<p align="center">
+  <img src="./screenshots/gameplay.png" alt="GeoGame gameplay" width="850">
+</p>
+
 ## Architecture
 
 ```text
